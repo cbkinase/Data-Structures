@@ -56,3 +56,29 @@ def test_in(inserted_filter: BloomFilter):
 
 def test_not_in(empty_filter: BloomFilter):
     assert empty_filter.may_contain("hello") is False
+
+
+# Let's verify the false positive estimation rate with Monte Carlo simulation
+
+def test_false_positive_estimation_accuracy():
+    size = 200_000
+    error_rate = 0.01
+    bloom = BloomFilter(size, fp_rate=error_rate)
+
+    for i in range(size):
+        bloom.put(i)
+
+    # At this point, any element not in the BloomFilter should have an fp
+    # rate of `error_rate`
+
+    start = 1_000_000
+    end = 1_200_000
+    total = end - start
+    hits = 0
+
+    for i in range(start, end):
+        if bloom.may_contain(i):
+            hits += 1
+
+    measured_fp_rate = hits / total
+    assert pytest.approx(measured_fp_rate, rel=0.05) == bloom.expected_fpp()

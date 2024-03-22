@@ -10,7 +10,7 @@ build(n)        |   -->     O(n)        |
 clear_at(i)     |   -->     O(1)        |
 get_at(i)       |   -->     O(1)        |
 set_at(i)       |   -->     O(1)        |
-xor(other)      |   -->     O(n)        |
+or(other)       |   -->     O(n)        |
 ------------------------------------------------------------------------------
 
 Overall, requires O(n) space. Practically, far less than a list for large n.
@@ -53,6 +53,8 @@ class BitArray:
     def bitwise_or(self, other) -> None:
         """
         OR the bits of self with other, mutating self.
+
+        BitArrays must be of equal length.
         """
         if not isinstance(other, BitArray):
             raise ValueError("Must OR with another BitArray")
