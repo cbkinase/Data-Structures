@@ -59,20 +59,20 @@ def test_out_of_range(empty_bit_array: BitArray):
         empty_bit_array.get(15)
 
 
-def test_xor(filled_bit_array: BitArray, empty_bit_array: BitArray):
-    empty_bit_array.xor(filled_bit_array)
+def test_or(filled_bit_array: BitArray, empty_bit_array: BitArray):
+    empty_bit_array.bitwise_or(filled_bit_array)
     assert empty_bit_array.get(2) == 1
     assert empty_bit_array.get(5) == 1
     assert empty_bit_array.get(0) == 0
 
 
-def test_prohibited_xor(filled_bit_array: BitArray):
+def test_prohibited_or(filled_bit_array: BitArray):
     arr = BitArray(3)
     with pytest.raises(ValueError):
-        arr.xor(filled_bit_array)
+        arr.bitwise_or(filled_bit_array)
 
     with pytest.raises(ValueError):
-        arr.xor([0, 1, 0])
+        arr.bitwise_or([0, 1, 0])
 
 
 def test_memory():
@@ -107,3 +107,30 @@ def test_no_slices(filled_bit_array: BitArray):
 
 def test_length(filled_bit_array: BitArray):
     assert len(filled_bit_array) == 10
+
+
+def test_many_modifications():
+    bit_array = BitArray(1000)
+    for i in range(len(bit_array)):
+        bit_array.set(i)
+        assert bit_array.get(i) == 1
+
+    for i in range(len(bit_array)):
+        bit_array.clear(i)
+        assert bit_array.get(i) == 0
+
+
+def test_big_or():
+    SIZE = 20_000
+    bit_array_even = BitArray(SIZE)
+    bit_array_odd = BitArray(SIZE)
+    for i in range(0, SIZE - 1, 2):
+        bit_array_even.set(i)
+
+    for i in range(1, SIZE, 2):
+        bit_array_odd.set(i)
+
+    bit_array_odd.bitwise_or(bit_array_even)
+
+    for i in range(SIZE):
+        assert bit_array_odd.get(i) == 1

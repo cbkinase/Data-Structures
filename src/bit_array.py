@@ -50,6 +50,19 @@ class BitArray:
         if index < 0 or index >= self.size:
             raise IndexError("Index out of range")
 
+    def bitwise_or(self, other) -> None:
+        """
+        OR the bits of self with other, mutating self.
+        """
+        if not isinstance(other, BitArray):
+            raise ValueError("Must OR with another BitArray")
+
+        if self.size != other.size:
+            raise ValueError("BitArrays must be of the same size")
+
+        for i in range(len(self.arr)):
+            self.arr[i] |= other.arr[i]
+
     def clear(self, index: int) -> None:
         """
         Set bit at index to 0.
@@ -70,19 +83,6 @@ class BitArray:
         """
         self._check_index(index)
         self.arr[index // 8] |= 1 << (index % 8)
-
-    def xor(self, other) -> None:
-        """
-        XOR the bits of self with other, mutating self.
-        """
-        if not isinstance(other, BitArray):
-            raise ValueError("Must XOR with another BitArray")
-
-        if self.size != other.size:
-            raise ValueError("BitArrays must be of the same size")
-
-        for i in range(len(self.arr)):
-            self.arr[i] ^= other.arr[i]
 
     def __getitem__(self, __index: int) -> int:
         if isinstance(__index, slice):

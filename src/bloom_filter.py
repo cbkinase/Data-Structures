@@ -143,7 +143,7 @@ class BloomFilter:
         a bitwise OR of the underlying bit arrays.
         """
         if self.is_compatible(other):
-            self._bit_array.xor(other._bit_array)
+            self._bit_array.bitwise_or(other._bit_array)
         else:
             raise ValueError("Bloom filters are not compatible")
 
