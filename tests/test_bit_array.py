@@ -1,5 +1,5 @@
 import pytest
-from src.bit_array import BitArray
+from src import BitArray
 
 
 @pytest.fixture
@@ -84,12 +84,14 @@ def test_memory():
 
 
 def test_big():
-    BIG_NUM = 50_000_001
+    BIG_NUM = 100_000_001
     big = BitArray(BIG_NUM)
     big_list = [0] * BIG_NUM
     assert len(big) == BIG_NUM
-    # Some memory penalty with the generator for some reason
-    assert big.__sizeof__() < big_list.__sizeof__() / 60
+    # Some memory penalty with the generator for some reason... why?
+    # Still, it remains true that space reduction approaches 64x, though
+    # not monotonically anymore -- there is a jump at the size cutoff.
+    assert big.__sizeof__() < big_list.__sizeof__() / 61
 
 
 def test_iter():

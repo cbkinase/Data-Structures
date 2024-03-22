@@ -1,5 +1,5 @@
 import pytest
-from src.unique_list import UniqueList
+from src import UniqueList
 
 
 @pytest.fixture

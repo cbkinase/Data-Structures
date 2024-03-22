@@ -36,8 +36,8 @@ class BitArray:
     def __init__(self, size: int):
         self.size = size
         # It's a bit slower, but at a certain point the heap blows up...
-        if size > 50_000_000:
-            self.arr = array("B", (0 for _ in repeat(0, (size + 7) // 8)))
+        if size > 100_000_000:
+            self.arr = array("B", repeat(0, (size + 7) // 8))
         else:
             self.arr = array("B", [0] * ((size + 7) // 8))
 

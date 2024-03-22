@@ -48,13 +48,14 @@ from math import exp
 from math import log
 from math import pow
 from typing import Hashable
-from src.bit_array import BitArray
+from bit_array import BitArray
 
 
 class BloomFilter:
-    _hash_fn_names = list(hashlib.algorithms_guaranteed)
     _hash_fn_names = [
-        name for name in _hash_fn_names if not name.startswith("shake")
+        name
+        for name in list(hashlib.algorithms_guaranteed)
+        if not name.startswith("shake")
     ]
 
     def __init__(self, expected_insertions: int, fp_rate: float = 0.03):
