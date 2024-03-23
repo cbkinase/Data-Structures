@@ -52,6 +52,8 @@ from bit_array import BitArray
 
 
 class BloomFilter:
+    # If it turns out we need the extra hash functions starting with
+    # "shake", just need to properly account for the .digest() args
     _hash_fn_names = [
         name
         for name in list(hashlib.algorithms_guaranteed)
@@ -80,7 +82,7 @@ class BloomFilter:
     def expected_fpp(self) -> float:
         """
         Returns the probability that might_contain(item) will erroneously
-        return true for an item that has not actually been put in the
+        return True for an item that has not actually been put in the
         BloomFilter.
         """
         k = len(self._hash_functions)
@@ -112,8 +114,8 @@ class BloomFilter:
 
     def may_contain(self, item: Hashable) -> bool:
         """
-        Returns true if the item might have been put in this BloomFilter,
-        false if this is definitely not the case.
+        Returns True if the item might have been put in this BloomFilter,
+        False if this is definitely not the case.
         """
         for hasher in self._hash_functions:
             hasher = hasher.copy()
@@ -137,7 +139,7 @@ class BloomFilter:
             bucket = hash_int % len(self._bit_array)
             self._bit_array.set(bucket)
 
-    def put_all(self, other) -> None:
+    def put_all(self, other: "BloomFilter") -> None:
         """
         Combines this BloomFilter with another BloomFilter by performing
         a bitwise OR of the underlying bit arrays.

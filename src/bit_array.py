@@ -50,7 +50,7 @@ class BitArray:
         if index < 0 or index >= self.size:
             raise IndexError("Index out of range")
 
-    def bitwise_or(self, other) -> None:
+    def bitwise_or(self, other: "BitArray") -> None:
         """
         OR the bits of self with other, mutating self.
 

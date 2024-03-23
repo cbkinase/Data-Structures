@@ -127,6 +127,7 @@ class UniqueList(MutableSequence):
         x.__getitem__(y) <==> x[y]
         """
         # TODO: slice of UniqueList should return UniqueList, not list
+        # But if I do that, I need to worry about whether or not to deep copy
         return self._lst[__index]
 
     def __len__(self) -> int:

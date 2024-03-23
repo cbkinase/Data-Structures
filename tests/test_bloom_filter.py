@@ -1,3 +1,4 @@
+import random
 import pytest
 from src import BloomFilter
 
@@ -60,19 +61,21 @@ def test_not_in(empty_filter: BloomFilter):
 
 # Let's verify the false positive estimation rate with Monte Carlo simulation
 
+
 def test_false_positive_estimation_accuracy():
     size = 200_000
+    offset = random.randint(0, 1_000_000)
     error_rate = 0.01
     bloom = BloomFilter(size, fp_rate=error_rate)
 
     for i in range(size):
-        bloom.put(i)
+        bloom.put(i + offset)
 
     # At this point, any element not in the BloomFilter should have an fp
-    # rate of `error_rate`
+    # rate of approximately `error_rate` - given exactly by expected_fpp()
 
-    start = 1_000_000
-    end = 1_200_000
+    start = 1_000_000 + offset
+    end = 1_200_000 + offset
     total = end - start
     hits = 0
 
@@ -81,4 +84,5 @@ def test_false_positive_estimation_accuracy():
             hits += 1
 
     measured_fp_rate = hits / total
+    # What's the probability this test randomly fails?
     assert pytest.approx(measured_fp_rate, rel=0.05) == bloom.expected_fpp()
