@@ -85,7 +85,7 @@ def test_prohibited_or(filled_bit_array: BitArray):
     with pytest.raises(ValueError):
         arr.bitwise_or(filled_bit_array)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         arr.bitwise_or([0, 1, 0])
 
 

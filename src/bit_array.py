@@ -59,7 +59,7 @@ class BitArray:
         BitArrays must be of equal length.
         """
         if not isinstance(other, BitArray):
-            raise ValueError("Must OR with another BitArray")
+            raise TypeError("Must OR with another BitArray")
 
         if self._size != other._size:
             raise ValueError("BitArrays must be of the same size")

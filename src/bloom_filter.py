@@ -49,18 +49,27 @@ from math import exp
 from math import log
 from math import pow
 from numbers import Number
+from random import shuffle
 from typing import Hashable
 from bit_array import BitArray
 
 
 class BloomFilter:
-    # If it turns out we need the extra hash functions starting with
-    # "shake", just need to properly account for the .digest() args
-    _hash_fn_names = [
-        name
-        for name in list(hashlib.algorithms_guaranteed)
-        if not name.startswith("shake")
+    _hash_fns = [
+        hashlib.sha3_384,
+        hashlib.sha256,
+        hashlib.sha384,
+        hashlib.sha3_512,
+        hashlib.blake2s,
+        hashlib.sha1,
+        hashlib.sha512,
+        hashlib.blake2b,
+        hashlib.sha3_224,
+        hashlib.sha224,
+        hashlib.sha3_256,
+        hashlib.md5,
     ]
+    shuffle(_hash_fns)
 
     def __init__(self, expected_insertions: int, fp_rate: float = 0.03):
         if not isinstance(expected_insertions, int):
@@ -94,7 +103,7 @@ class BloomFilter:
         m = len(self._bit_array)
         k = round((m / n) * log(2))
         # Pick first k hash functions
-        return [hashlib.new(name) for name in BloomFilter._hash_fn_names[:k]]
+        return [fn for fn in BloomFilter._hash_fns[:k]]
 
     def expected_fpp(self) -> float:
         """
@@ -135,9 +144,7 @@ class BloomFilter:
         False if this is definitely not the case.
         """
         for hasher in self._hash_functions:
-            hasher = hasher.copy()
-            hasher.update(pickle.dumps(item))
-            digest = hasher.digest()
+            digest = hasher(pickle.dumps(item)).digest()
             hash_int = int.from_bytes(digest, byteorder="big")
             bucket = hash_int % len(self._bit_array)
 
@@ -149,9 +156,7 @@ class BloomFilter:
     def put(self, item: Hashable) -> None:
         """Put an element into the BloomFilter"""
         for hasher in self._hash_functions:
-            hasher = hasher.copy()
-            hasher.update(pickle.dumps(item))
-            digest = hasher.digest()
+            digest = hasher(pickle.dumps(item)).digest()
             hash_int = int.from_bytes(digest, byteorder="big")
             bucket = hash_int % len(self._bit_array)
             self._bit_array.set(bucket)
