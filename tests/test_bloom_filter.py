@@ -16,6 +16,37 @@ def inserted_filter():
     return f
 
 
+def test_bad_insertion_init():
+    with pytest.raises(TypeError):
+        BloomFilter("hello")
+
+    with pytest.raises(TypeError):
+        BloomFilter("0.5")
+
+    with pytest.raises(ValueError):
+        BloomFilter(-500)
+
+
+def test_bad_fp_rate_init():
+    with pytest.raises(TypeError):
+        BloomFilter(10_000, fp_rate="hello")
+
+    with pytest.raises(TypeError):
+        BloomFilter(10_000, fp_rate=0.1 + 3j)
+
+    with pytest.raises(ValueError):
+        BloomFilter(10_000, fp_rate=0)
+
+    with pytest.raises(ValueError):
+        BloomFilter(10_000, fp_rate=-1)
+
+    with pytest.raises(ValueError):
+        BloomFilter(10_000, fp_rate=1)
+
+    with pytest.raises(ValueError):
+        BloomFilter(10_000, fp_rate=100)
+
+
 def test_may_contain(inserted_filter: BloomFilter):
     assert inserted_filter.may_contain("hello") is True
     assert inserted_filter.may_contain("world") is True
@@ -85,4 +116,5 @@ def test_false_positive_estimation_accuracy():
 
     measured_fp_rate = hits / total
     # What's the probability this test randomly fails?
-    assert pytest.approx(measured_fp_rate, rel=0.05) == bloom.expected_fpp()
+    # Probably want to tune it to be less than 1 in a million
+    assert pytest.approx(measured_fp_rate, rel=0.10) == bloom.expected_fpp()

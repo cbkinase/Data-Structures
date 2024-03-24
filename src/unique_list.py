@@ -10,7 +10,7 @@ append(item)    |   -->     O(1)        |   Amortized O(1)
 contains(item)  |   -->     O(1)        |   Use underlying set
 delete_at(i)    |   -->     O(n)        |   Worst case (i=0), O(1) at i = n-1
 get_at(i)       |   -->     O(1)        |
-insert(i, item) |   -->     O(1)        |   Worst case (i=0), O(1) at i = n
+insert(i, item) |   -->     O(n)        |   Worst case (i=0), O(1) at i = n
 set_at(i)       |   -->     O(1)        |
 remove(item)    |   -->     O(n)        |   Find i of item + delete_at(i)
 ------------------------------------------------------------------------------

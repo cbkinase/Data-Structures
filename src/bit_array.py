@@ -34,12 +34,18 @@ from itertools import repeat
 
 class BitArray:
     def __init__(self, size: int):
-        self.size = size
+        if not isinstance(size, int):
+            raise TypeError("size must be an integer")
+
+        if size <= 0:
+            raise ValueError("size must be positive")
+
+        self._size = size
         # It's a bit slower, but at a certain point the heap blows up...
         if size > 100_000_000:
-            self.arr = array("B", repeat(0, (size + 7) // 8))
+            self._arr = array("B", repeat(0, (size + 7) // 8))
         else:
-            self.arr = array("B", [0] * ((size + 7) // 8))
+            self._arr = array("B", [0] * ((size + 7) // 8))
 
     def _check_index(self, index: int):
         """
@@ -47,7 +53,7 @@ class BitArray:
 
         No negative indices for now.
         """
-        if index < 0 or index >= self.size:
+        if index < 0 or index >= self._size:
             raise IndexError("Index out of range")
 
     def bitwise_or(self, other: "BitArray") -> None:
@@ -59,32 +65,32 @@ class BitArray:
         if not isinstance(other, BitArray):
             raise ValueError("Must OR with another BitArray")
 
-        if self.size != other.size:
+        if self._size != other._size:
             raise ValueError("BitArrays must be of the same size")
 
-        for i in range(len(self.arr)):
-            self.arr[i] |= other.arr[i]
+        for i in range(len(self._arr)):
+            self._arr[i] |= other._arr[i]
 
     def clear(self, index: int) -> None:
         """
         Set bit at index to 0.
         """
         self._check_index(index)
-        self.arr[index // 8] &= ~(1 << (index % 8))
+        self._arr[index // 8] &= ~(1 << (index % 8))
 
     def get(self, index: int) -> int:
         """
         Returns bit at index.
         """
         self._check_index(index)
-        return (self.arr[index // 8] >> (index % 8)) & 1
+        return (self._arr[index // 8] >> (index % 8)) & 1
 
     def set(self, index: int) -> None:
         """
         Set bit at index to 1.
         """
         self._check_index(index)
-        self.arr[index // 8] |= 1 << (index % 8)
+        self._arr[index // 8] |= 1 << (index % 8)
 
     def __getitem__(self, __index: int) -> int:
         if isinstance(__index, slice):
@@ -93,7 +99,7 @@ class BitArray:
         return self.get(__index)
 
     def __len__(self) -> int:
-        return self.size
+        return self._size
 
     def __sizeof__(self) -> int:
-        return sys.getsizeof(self.arr) + sys.getsizeof(self.size)
+        return sys.getsizeof(self._arr) + sys.getsizeof(self._size)

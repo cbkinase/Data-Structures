@@ -47,6 +47,7 @@ from math import ceil
 from math import exp
 from math import log
 from math import pow
+from numbers import Number
 from typing import Hashable
 from bit_array import BitArray
 
@@ -61,6 +62,21 @@ class BloomFilter:
     ]
 
     def __init__(self, expected_insertions: int, fp_rate: float = 0.03):
+        if not isinstance(expected_insertions, int):
+            raise TypeError("expected_insertions must be an integer")
+
+        if expected_insertions <= 0:
+            raise ValueError("expected_insertions must be positive")
+
+        if not isinstance(fp_rate, Number):
+            raise TypeError("fp_rate must be numeric & between 0 and 1")
+
+        if isinstance(fp_rate, complex):
+            raise TypeError("fp_rate must not be complex")
+
+        if fp_rate <= 0 or fp_rate >= 1:
+            raise ValueError("fp_rate must be between 0 and 1")
+
         self._expected_insertions = expected_insertions
         self._fp_rate = fp_rate
         self._bit_array: BitArray = self._initialize_bit_array()

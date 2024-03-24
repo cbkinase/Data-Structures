@@ -16,7 +16,21 @@ def filled_bit_array():
 
 
 def test_initialization(empty_bit_array: BitArray):
-    assert len(empty_bit_array.arr) == 2  # 10 bits requires 2 bytes
+    assert len(empty_bit_array._arr) == 2  # 10 bits requires 2 bytes
+
+
+def test_bad_init():
+    with pytest.raises(TypeError):
+        BitArray(5.5)
+
+    with pytest.raises(TypeError):
+        BitArray("hello")
+
+    with pytest.raises(ValueError):
+        BitArray(0)
+
+    with pytest.raises(ValueError):
+        BitArray(-5)
 
 
 def test_setting_and_getting(empty_bit_array: BitArray):
