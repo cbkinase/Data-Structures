@@ -24,12 +24,12 @@ Size of list/array   |   BitArray memory  |  List memory  |  Factor improved
 10_000_000           |        1.25 MB     |    80.00 MB   |   63.99x
 100_000_000          |       12.50 MB     |   800.00 MB   |   64.00x
 ------------------------------------------------------------------------------
+Numbers may vary slightly depending on the Python implementation, version, etc
 """
 
 
 import sys
 from array import array
-from itertools import repeat
 
 
 class BitArray:
@@ -41,11 +41,7 @@ class BitArray:
             raise ValueError("size must be positive")
 
         self._size = size
-        # It's a bit slower, but at a certain point the heap blows up...
-        if size > 100_000_000:
-            self._arr = array("B", repeat(0, (size + 7) // 8))
-        else:
-            self._arr = array("B", [0] * ((size + 7) // 8))
+        self._arr = array("B", bytearray((size + 7) // 8))
 
     def _check_index(self, index: int):
         """

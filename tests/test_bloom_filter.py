@@ -52,6 +52,12 @@ def test_may_contain(inserted_filter: BloomFilter):
     assert inserted_filter.may_contain("world") is True
 
 
+def test_no_bogus_coercion():
+    bloom = BloomFilter(1000, fp_rate=0.01)
+    bloom.put(1)
+    assert bloom.may_contain("1") is False
+
+
 def test_expected_fpp(inserted_filter: BloomFilter):
     assert pytest.approx(inserted_filter.expected_fpp(), abs=10e-5) == 0.01
 
@@ -96,7 +102,7 @@ def test_not_in(empty_filter: BloomFilter):
 def test_false_positive_estimation_accuracy():
     size = 200_000
     offset = random.randint(0, 1_000_000)
-    error_rate = 0.01
+    error_rate = 0.03
     bloom = BloomFilter(size, fp_rate=error_rate)
 
     for i in range(size):

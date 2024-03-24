@@ -43,6 +43,7 @@ TDD with probabilistic data structures... how does it work? Monte Carlo?
 
 
 import hashlib
+import pickle
 from math import ceil
 from math import exp
 from math import log
@@ -135,7 +136,7 @@ class BloomFilter:
         """
         for hasher in self._hash_functions:
             hasher = hasher.copy()
-            hasher.update(str(item).encode())
+            hasher.update(pickle.dumps(item))
             digest = hasher.digest()
             hash_int = int.from_bytes(digest, byteorder="big")
             bucket = hash_int % len(self._bit_array)
@@ -149,7 +150,7 @@ class BloomFilter:
         """Put an element into the BloomFilter"""
         for hasher in self._hash_functions:
             hasher = hasher.copy()
-            hasher.update(str(item).encode())
+            hasher.update(pickle.dumps(item))
             digest = hasher.digest()
             hash_int = int.from_bytes(digest, byteorder="big")
             bucket = hash_int % len(self._bit_array)
