@@ -4,26 +4,29 @@ This is an assortment of pure Python implementations of some miscellaneous data 
 
 The data structures require no external dependencies: only core Python and the standard library are used.
 
+## BitArray
 
-## Currently Implemented Data Structures
+<b> The BitArray data structure is highly space efficient, using only ~1.6% of the memory of an equal sized dynamic array for large array sizes -- 64 times less space. </b>
 
-### BitArray
-#### The BitArray data structure is highly space efficient, using only ~1.6% of the memory of an equivalent sized dynamic array for large array sizes -- 64 times less space.
 
 Let n be the size of the `BitArray`\
 Let i be the index we are operating on
 
-| Operation | Time Complexity |                 Notes                |
-|:---------:|:---------------:|:------------------------------------:|
-|  build(n) |       O(n)      |                                      |
-|  clear(i) |       O(1)      |           Set bit at i to 0          |
-|   get(i)  |       O(1)      |          Return bit at index         |
-|   set(i)  |       O(1)      |           Set bit at i to 1          |
-| or(other) |       O(n)      | Bitwise OR two same-length BitArrays |
+|   Operation  	| Time Complexity 	|                 Notes                	|
+|:------------:	|:---------------:	|:------------------------------------:	|
+|   build(n)   	|       O(n)      	|                                      	|
+|   get_at(i)  	|       O(1)      	|          Return bit at index         	|
+| set_at(i, b) 	|       O(1)      	|           Set bit at i to b          	|
+|   or(other)  	|       O(n)      	| Bitwise OR two same-length BitArrays 	|
 
 
-### BloomFilter
-#### A probabilistic data structure supporting highly memory efficient membership testing, provided you are willing to accept a certain (predictable) level of inaccuracy.
+<sub>`bit_array.get_at(i)` is written as `bit_array[i]`</sub>\
+<sub>`bit_array.set_at(i, b)` is written as `bit_array[i] = b`
+
+
+## BloomFilter
+
+<b> A probabilistic data structure supporting highly memory efficient membership testing, provided you are willing to accept a certain (predictable) level of inaccuracy. </b>
 
 
 Let m be the size of the bit array\
@@ -40,8 +43,9 @@ Let p be the probability of a false positive after n distinct insertions
 |       put(item)      |        O(k)        |                               |
 
 
-### UniqueList
-#### May also be thought of as an `OrderedSet`. Essentially has the interface of a list that does not allow duplicate entries. Only hashable (immutable) types may be added to `UniqueList` -- otherwise it becomes impossible to guarantee uniqueness.
+## UniqueList
+
+<b> May also be thought of as an `OrderedSet`. Essentially has the interface of a list that does not allow duplicate entries. Only hashable (immutable) types may be added to `UniqueList` -- otherwise it becomes impossible to guarantee uniqueness. </b>
 
 Let n be the number of elements in the `UniqueList`\
 Let i be the index we are operating on

@@ -104,7 +104,15 @@ def test_prohibited_or(BitArrayClass):
 
 def test_memory():
     # For large sizes, BitArray will be much smaller than a list
-    for i in range(500_000, 1_000_001, 100_000):
+    for i in range(1_000_000, 2_000_001, 100_000):
         lst = [0] * i
         b = BitArray(i)
-        assert b.__sizeof__() < lst.__sizeof__() / 60
+        assert pytest.approx(b.__sizeof__(), rel=0.01) == lst.__sizeof__() / 60
+
+
+def test_memory_fast():
+    # FastBitArray is smaller, but not quite as compact as BitArray
+    for i in range(1_000_000, 2_000_001, 100_000):
+        lst = [0] * i
+        b = BitArrayFast(i)
+        assert pytest.approx(b.__sizeof__(), rel=0.01) == lst.__sizeof__() / 8
