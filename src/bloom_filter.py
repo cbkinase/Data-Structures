@@ -52,22 +52,24 @@ from numbers import Number
 from random import shuffle
 from typing import Hashable
 from bit_array import BitArray
+from bit_array import BitArrayFast
 
 
 class BloomFilter:
+    _core_hash_fns = [hash]
     _hash_fns = [
-        hashlib.sha3_384,
-        hashlib.sha256,
-        hashlib.sha384,
-        hashlib.sha3_512,
         hashlib.blake2s,
-        hashlib.sha1,
-        hashlib.sha512,
         hashlib.blake2b,
-        hashlib.sha3_224,
+        hashlib.sha1,
+        hashlib.sha256,
         hashlib.sha224,
-        hashlib.sha3_256,
         hashlib.md5,
+        hashlib.sha512,
+        hashlib.sha384,
+        hashlib.sha3_384,
+        hashlib.sha3_512,
+        hashlib.sha3_224,
+        hashlib.sha3_256,
     ]
     shuffle(_hash_fns)
 
@@ -89,21 +91,26 @@ class BloomFilter:
 
         self._expected_insertions = expected_insertions
         self._fp_rate = fp_rate
-        self._bit_array: BitArray = self._initialize_bit_array()
+        self._bit_array: BitArray | BitArrayFast = self._make_bit_array()
         self._hash_functions = self._pick_hash_functions()
 
-    def _initialize_bit_array(self):
+    def _make_bit_array(self):
         n = self._expected_insertions
         p = self._fp_rate
         length = ceil((n * log(p)) / log(1 / pow(2, log(2))))
-        return BitArray(length)
+
+        if length < 12_000_000_000:
+            return BitArrayFast(length)
+        else:
+            return BitArray(length)
 
     def _pick_hash_functions(self):
         n = self._expected_insertions
         m = len(self._bit_array)
         k = round((m / n) * log(2))
-        # Pick first k hash functions
-        return [fn for fn in BloomFilter._hash_fns[:k]]
+        k_init = len(BloomFilter._core_hash_fns)
+        # Pick first k - k_init hash functions
+        return [fn for fn in BloomFilter._hash_fns[: k - k_init]]
 
     def expected_fpp(self) -> float:
         """
@@ -111,7 +118,7 @@ class BloomFilter:
         return True for an item that has not actually been put in the
         BloomFilter.
         """
-        k = len(self._hash_functions)
+        k = len(self._hash_functions) + len(self._core_hash_fns)
         n = self._expected_insertions
         m = len(self._bit_array)
         expected_zero_density = exp(-(k * n) / m)
@@ -143,23 +150,39 @@ class BloomFilter:
         Returns True if the item might have been put in this BloomFilter,
         False if this is definitely not the case.
         """
+        pickled = pickle.dumps(item)
+
+        for hasher in self._core_hash_fns:
+            bucket = hasher(pickled) % len(self._bit_array)
+
+            if self._bit_array[bucket] == 0:
+                return False
+
         for hasher in self._hash_functions:
-            digest = hasher(pickle.dumps(item)).digest()
-            hash_int = int.from_bytes(digest, byteorder="big")
+            digest = hasher(pickled).digest()
+            hash_int = int.from_bytes(digest, byteorder="little")
             bucket = hash_int % len(self._bit_array)
 
-            if self._bit_array.get(bucket) == 0:
+            if self._bit_array[bucket] == 0:
                 return False
 
         return True
 
     def put(self, item: Hashable) -> None:
-        """Put an element into the BloomFilter"""
+        """
+        Put an element into the BloomFilter.
+        """
+        pickled = pickle.dumps(item)
+
+        for hasher in self._core_hash_fns:
+            bucket = hasher(pickled) % len(self._bit_array)
+            self._bit_array[bucket] = 1
+
         for hasher in self._hash_functions:
-            digest = hasher(pickle.dumps(item)).digest()
-            hash_int = int.from_bytes(digest, byteorder="big")
+            digest = hasher(pickled).digest()
+            hash_int = int.from_bytes(digest, byteorder="little")
             bucket = hash_int % len(self._bit_array)
-            self._bit_array.set(bucket)
+            self._bit_array[bucket] = 1
 
     def put_all(self, other: "BloomFilter") -> None:
         """
@@ -172,5 +195,7 @@ class BloomFilter:
             raise ValueError("Bloom filters are not compatible")
 
     def __contains__(self, item) -> bool:
-        """Included for uniformity with other container types"""
+        """
+        Included for uniformity with other container types.
+        """
         return self.may_contain(item)

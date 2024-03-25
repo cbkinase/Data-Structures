@@ -101,8 +101,8 @@ def test_not_in(empty_filter: BloomFilter):
 
 def test_false_positive_estimation_accuracy():
     size = 200_000
-    offset = random.randint(0, 1_000_000)
-    error_rate = 0.03
+    offset = random.randint(0, 300_000)
+    error_rate = 0.01
     bloom = BloomFilter(size, fp_rate=error_rate)
 
     for i in range(size):
@@ -111,8 +111,8 @@ def test_false_positive_estimation_accuracy():
     # At this point, any element not in the BloomFilter should have an fp
     # rate of approximately `error_rate` - given exactly by expected_fpp()
 
-    start = 1_000_000 + offset
-    end = 1_200_000 + offset
+    start = size + offset + 1_000_000
+    end = size + start
     total = end - start
     hits = 0
 
@@ -123,4 +123,20 @@ def test_false_positive_estimation_accuracy():
     measured_fp_rate = hits / total
     # What's the probability this test randomly fails?
     # Probably want to tune it to be less than 1 in a million
-    assert pytest.approx(measured_fp_rate, rel=0.10) == bloom.expected_fpp()
+    assert (
+        pytest.approx(measured_fp_rate, abs=(error_rate / 10))
+        == bloom.expected_fpp()
+    )
+
+
+def test_big():
+    size = 200_000
+    error_rate = 0.01
+    bloom = BloomFilter(2_000_000_000, fp_rate=error_rate)
+
+    for i in range(size):
+        bloom.put(i)
+
+    for i in range(size, size * 2):
+        if bloom.may_contain(i):
+            pass
