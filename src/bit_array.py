@@ -43,15 +43,6 @@ class BitArray:
         # Each slot in self._arr holds 8 bits
         self._arr = array("B", bytearray((size + 7) // 8))
 
-    def _check_index(self, index: int):
-        """
-        Ensure that index is within bounds of the array.
-
-        No negative indices for now.
-        """
-        if index < 0 or index >= self._size:
-            raise IndexError("Index out of range")
-
     def bitwise_or(self, other: "BitArray") -> None:
         """
         OR the bits of self with other, mutating self.
@@ -68,11 +59,9 @@ class BitArray:
             self._arr[i] |= other._arr[i]
 
     def __getitem__(self, __key: int) -> int:
-        self._check_index(__key)
         return (self._arr[__key // 8] >> (__key % 8)) & 1
 
     def __setitem__(self, __key: int, __value: int) -> None:
-        self._check_index(__key)
         if __value == 1:
             self._arr[__key // 8] |= 1 << (__key % 8)
         elif __value == 0:
@@ -83,33 +72,3 @@ class BitArray:
 
     def __sizeof__(self) -> int:
         return sys.getsizeof(self._arr) + sys.getsizeof(self._size)
-
-
-class BitArrayFast(bytearray):
-    """
-    Much faster than the other BitArray, but not as space efficient.
-    """
-
-    def __init__(self, size: int):
-        if not isinstance(size, int):
-            raise TypeError("size must be an integer")
-
-        if size <= 0:
-            raise ValueError("size must be positive")
-
-        super().__init__(size)
-
-    def bitwise_or(self, other: "BitArrayFast"):
-        """
-        OR the bits of self with other, mutating self.
-
-        BitArrayFasts must be of equal length.
-        """
-        if not isinstance(other, BitArrayFast):
-            raise TypeError("Must OR with another BitArraySmall")
-
-        if len(self) != len(other):
-            raise ValueError("BitArraySmalls must be of the same size")
-
-        for i in range(len(self)):
-            self[i] |= other[i]

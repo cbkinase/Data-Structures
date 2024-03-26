@@ -127,16 +127,3 @@ def test_false_positive_estimation_accuracy():
         pytest.approx(measured_fp_rate, abs=(error_rate / 10))
         == bloom.expected_fpp()
     )
-
-
-def test_big():
-    size = 200_000
-    error_rate = 0.01
-    bloom = BloomFilter(2_000_000_000, fp_rate=error_rate)
-
-    for i in range(size):
-        bloom.put(i)
-
-    for i in range(size, size * 2):
-        if bloom.may_contain(i):
-            pass

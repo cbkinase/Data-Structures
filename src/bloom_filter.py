@@ -49,21 +49,18 @@ from math import exp
 from math import log
 from math import pow
 from numbers import Number
-from random import shuffle
 from typing import Hashable
 from bit_array import BitArray
-from bit_array import BitArrayFast
 
 
 class BloomFilter:
-    _core_hash_fns = [hash]
-    _hash_fns = [
+    _hash_fn_pool = [
         hashlib.blake2s,
         hashlib.blake2b,
         hashlib.sha1,
+        hashlib.md5,
         hashlib.sha256,
         hashlib.sha224,
-        hashlib.md5,
         hashlib.sha512,
         hashlib.sha384,
         hashlib.sha3_384,
@@ -71,7 +68,6 @@ class BloomFilter:
         hashlib.sha3_224,
         hashlib.sha3_256,
     ]
-    shuffle(_hash_fns)
 
     def __init__(self, expected_insertions: int, fp_rate: float = 0.03):
         if not isinstance(expected_insertions, int):
@@ -91,40 +87,37 @@ class BloomFilter:
 
         self._expected_insertions = expected_insertions
         self._fp_rate = fp_rate
-        self._bit_array: BitArray | BitArrayFast = self._make_bit_array()
+        self._bit_array: BitArray = self._make_bit_array()
         self._hash_functions = self._pick_hash_functions()
 
     def _make_bit_array(self):
         n = self._expected_insertions
         p = self._fp_rate
         length = ceil((n * log(p)) / log(1 / pow(2, log(2))))
-
-        if length < 12_000_000_000:
-            return BitArrayFast(length)
-        else:
-            return BitArray(length)
+        return BitArray(length)
 
     def _pick_hash_functions(self):
         n = self._expected_insertions
         m = len(self._bit_array)
         k = round((m / n) * log(2))
-        k_init = len(BloomFilter._core_hash_fns)
-        # Pick first k - k_init hash functions
-        return [fn for fn in BloomFilter._hash_fns[: k - k_init]]
+        # Pick first k hash functions
+        return [fn for fn in BloomFilter._hash_fn_pool[:k]]
 
     def expected_fpp(self) -> float:
         """
         Returns the probability that might_contain(item) will erroneously
         return True for an item that has not actually been put in the
         BloomFilter.
+
+        Assumes `expected_insertions` distinct insertions have been made.
         """
-        k = len(self._hash_functions) + len(self._core_hash_fns)
+        k = len(self._hash_functions)
         n = self._expected_insertions
         m = len(self._bit_array)
         expected_zero_density = exp(-(k * n) / m)
         return (1 - expected_zero_density) ** k
 
-    def is_compatible(self, other) -> bool:
+    def _is_compatible(self, other) -> bool:
         # For two BloomFilters to be compatible, they...
 
         if not isinstance(other, BloomFilter):
@@ -152,12 +145,6 @@ class BloomFilter:
         """
         pickled = pickle.dumps(item)
 
-        for hasher in self._core_hash_fns:
-            bucket = hasher(pickled) % len(self._bit_array)
-
-            if self._bit_array[bucket] == 0:
-                return False
-
         for hasher in self._hash_functions:
             digest = hasher(pickled).digest()
             hash_int = int.from_bytes(digest, byteorder="little")
@@ -174,10 +161,6 @@ class BloomFilter:
         """
         pickled = pickle.dumps(item)
 
-        for hasher in self._core_hash_fns:
-            bucket = hasher(pickled) % len(self._bit_array)
-            self._bit_array[bucket] = 1
-
         for hasher in self._hash_functions:
             digest = hasher(pickled).digest()
             hash_int = int.from_bytes(digest, byteorder="little")
@@ -189,7 +172,7 @@ class BloomFilter:
         Combines this BloomFilter with another BloomFilter by performing
         a bitwise OR of the underlying bit arrays.
         """
-        if self.is_compatible(other):
+        if self._is_compatible(other):
             self._bit_array.bitwise_or(other._bit_array)
         else:
             raise ValueError("Bloom filters are not compatible")
